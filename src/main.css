@@ -1,11 +1,16 @@
 :root {
-  font-family: "Avenir Next", "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
-  color: #1f2937;
-  line-height: 1.5;
-  font-synthesis: none;
-  text-rendering: optimizelegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+  --font-sans: "Avenir Next", "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
+  --font-mono: "JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+  --bg-base: #eef3ff;
+  --bg-secondary: #f7fbff;
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --glass-bg: rgb(255 255 255 / 64%);
+  --glass-border: rgb(255 255 255 / 72%);
+  --glass-shadow: 0 24px 56px rgb(15 23 42 / 10%);
+  --accent-start: #247bff;
+  --accent-end: #00d8d2;
+  --accent-gradient: linear-gradient(125deg, var(--accent-start), var(--accent-end));
 }
 
 * {
@@ -21,10 +26,29 @@ body,
 
 body {
   min-height: 100vh;
+  font-family: var(--font-sans);
+  line-height: 1.5;
+  color: var(--text-primary);
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   background:
-    radial-gradient(circle at 5% 5%, rgb(58 122 254 / 10%), transparent 30%),
-    radial-gradient(circle at 85% 10%, rgb(0 194 168 / 12%), transparent 35%),
-    #f5f7fb;
+    radial-gradient(1200px 420px at -8% -18%, rgb(36 123 255 / 24%), transparent 56%),
+    radial-gradient(860px 420px at 108% -12%, rgb(0 216 210 / 21%), transparent 52%),
+    radial-gradient(760px 460px at 50% 118%, rgb(56 189 248 / 14%), transparent 62%),
+    linear-gradient(180deg, var(--bg-secondary) 0%, var(--bg-base) 100%);
+  background-attachment: fixed;
+}
+
+code,
+pre,
+textarea {
+  font-family: var(--font-mono);
+}
+
+::selection {
+  background: rgb(36 123 255 / 22%);
 }
 
 ::-webkit-scrollbar {
@@ -32,8 +56,28 @@ body {
   height: 10px;
 }
 
+::-webkit-scrollbar-track {
+  background: rgb(255 255 255 / 42%);
+}
+
 ::-webkit-scrollbar-thumb {
   border-radius: 999px;
-  border: 2px solid #f5f7fb;
-  background: rgb(15 23 42 / 25%);
+  border: 2px solid rgb(255 255 255 / 48%);
+  background: linear-gradient(180deg, rgb(36 123 255 / 62%), rgb(0 216 210 / 62%));
+}
+
+.fade-up-enter-active {
+  animation: fade-up 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes fade-up {
+  from {
+    transform: translateY(8px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
