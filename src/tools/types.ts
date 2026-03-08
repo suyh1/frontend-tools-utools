@@ -1,0 +1,10 @@
+import type { Component } from 'vue'
+
+export interface ToolDefinition {
+  id: string
+  name: string
+  icon: string
+  keywords: string[]
+  order: number
+  component: Component
+}

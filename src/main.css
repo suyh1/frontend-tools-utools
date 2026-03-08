@@ -1,63 +1,39 @@
 :root {
-  --blue: rgb(88, 164, 246);
-  --light: #fff;
+  font-family: "Avenir Next", "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;
+  color: #1f2937;
+  line-height: 1.5;
+  font-synthesis: none;
+  text-rendering: optimizelegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html,
+body,
+#app {
+  margin: 0;
+  min-height: 100%;
+}
+
 body {
-  margin: 0;
-  padding: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 5% 5%, rgb(58 122 254 / 10%), transparent 30%),
+    radial-gradient(circle at 85% 10%, rgb(0 194 168 / 12%), transparent 35%),
+    #f5f7fb;
 }
 
-button {
-  border: none;
-  background: none var(--blue);
-  color: var(--light);
-  line-height: 2.5;
-  cursor: pointer;
-  transition: opacity .2s;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-button:disabled {
-  filter: grayscale(1);
-  cursor: not-allowed;
-}
-
-button:not(:disabled):active {
-  opacity: 0.6;
-}
-
-textarea {
-  display: block;
-  margin: 0;
-}
-
-@media (prefers-color-scheme: light) {
-  body {
-    background-color: #f4f4f4;
-  }
-
-  ::-webkit-scrollbar-track-piece {
-    background-color: #f4f4f4;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    border-color: #f4f4f4;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  &::-webkit-scrollbar-track-piece {
-    background-color: #303133;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background-color: #666;
-    border-color: #303133;
-  }
-
-  body {
-    background-color: #303133;
-    color: #fff;
-  }
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  border: 2px solid #f5f7fb;
+  background: rgb(15 23 42 / 25%);
 }
