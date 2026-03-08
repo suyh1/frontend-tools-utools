@@ -4,10 +4,21 @@ import { describe, expect, it } from 'vitest'
 import JsonTool from './JsonTool.vue'
 
 describe('JsonTool', () => {
+  const CodeEditorStub = {
+    name: 'CodeEditor',
+    props: ['modelValue', 'readonly'],
+    emits: ['update:modelValue'],
+    template:
+      '<textarea data-testid="stub-code-editor" :value="modelValue" :readonly="readonly" @input="$emit(\'update:modelValue\', $event.target.value)" />'
+  }
+
   it('renders format/minify/validate actions', () => {
     const wrapper = mount(JsonTool, {
       global: {
-        plugins: [createPinia()]
+        plugins: [createPinia()],
+        stubs: {
+          CodeEditor: CodeEditorStub
+        }
       }
     })
 
@@ -16,14 +27,30 @@ describe('JsonTool', () => {
     expect(wrapper.text()).toContain('校验')
   })
 
-  it('shows error when invalid json is validated', async () => {
+  it('renders language selector for multi-language editing', () => {
     const wrapper = mount(JsonTool, {
       global: {
-        plugins: [createPinia()]
+        plugins: [createPinia()],
+        stubs: {
+          CodeEditor: CodeEditorStub
+        }
       }
     })
 
-    const input = wrapper.find('textarea')
+    expect(wrapper.text()).toContain('语言')
+  })
+
+  it('shows error when invalid json is validated', async () => {
+    const wrapper = mount(JsonTool, {
+      global: {
+        plugins: [createPinia()],
+        stubs: {
+          CodeEditor: CodeEditorStub
+        }
+      }
+    })
+
+    const input = wrapper.find('[data-testid="stub-code-editor"]')
     await input.setValue('{"a":}')
 
     await wrapper.get('[data-testid="json-validate"]').trigger('click')

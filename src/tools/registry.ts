@@ -1,6 +1,8 @@
-import ColorTool from '@/tools/color/ColorTool.vue'
-import JsonTool from '@/tools/json/JsonTool.vue'
+import { defineAsyncComponent } from 'vue'
 import type { ToolDefinition } from '@/tools/types'
+
+const JsonTool = defineAsyncComponent(() => import('@/tools/json/JsonTool.vue'))
+const ColorTool = defineAsyncComponent(() => import('@/tools/color/ColorTool.vue'))
 
 export const toolRegistry: ToolDefinition[] = [
   {

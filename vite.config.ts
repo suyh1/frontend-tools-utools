@@ -9,5 +9,26 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     }
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) {
+            return undefined
+          }
+
+          if (id.includes('/@codemirror/')) {
+            return 'codemirror'
+          }
+
+          if (id.includes('/naive-ui/') || id.includes('/vueuc/') || id.includes('/vooks/')) {
+            return 'ui'
+          }
+
+          return 'vendor'
+        }
+      }
+    }
+  },
   base: './'
 })

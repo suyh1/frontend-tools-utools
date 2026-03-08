@@ -1,6 +1,10 @@
 <script setup lang="ts">
-import { NAlert, NButton, NCard, NFlex, NInput, NSelect, NSpace, NTag, NText } from 'naive-ui'
+import { computed, ref } from 'vue'
+import { NAlert, NButton, NCard, NFlex, NSelect, NSpace, NTag, NText } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
+import CodeEditor from '@/components/code-editor/CodeEditor.vue'
+import { codeLanguageOptions } from '@/components/code-editor/languages'
+import type { CodeLanguage } from '@/components/code-editor/types'
 import { useJsonTool } from '@/tools/json/composables/useJsonTool'
 
 const {
@@ -16,10 +20,19 @@ const {
   copyOutput
 } = useJsonTool()
 
+const selectedLanguage = ref<CodeLanguage>('json')
+
 const indentOptions: SelectOption[] = [
   { label: '2 空格', value: 2 },
   { label: '4 空格', value: 4 }
 ]
+
+const languageOptions = computed<SelectOption[]>(() =>
+  codeLanguageOptions.map((item) => ({
+    label: item.label,
+    value: item.value
+  }))
+)
 
 async function handleCopy() {
   const copied = await copyOutput()
@@ -37,9 +50,9 @@ async function handleCopy() {
     <div class="json-tool__hero">
       <div>
         <n-text class="json-tool__title" strong>JSON 工具</n-text>
-        <n-text depth="3" class="json-tool__subtitle">格式化、压缩、校验一体化工作区</n-text>
+        <n-text depth="3" class="json-tool__subtitle">多语言代码编辑器 + JSON 格式化、压缩、校验</n-text>
       </div>
-      <n-tag class="json-tool__status" round>Structured Data</n-tag>
+      <n-tag class="json-tool__status" round>Code Workspace</n-tag>
     </div>
 
     <div class="json-tool__toolbar">
@@ -50,6 +63,14 @@ async function handleCopy() {
       </n-space>
 
       <n-space :size="8" class="json-tool__toolbar-side" align="center">
+        <n-text depth="3">语言</n-text>
+        <n-select
+          v-model:value="selectedLanguage"
+          :options="languageOptions"
+          size="small"
+          style="width: 148px"
+          data-testid="json-language"
+        />
         <n-text depth="3">缩进</n-text>
         <n-select v-model:value="indent" :options="indentOptions" size="small" style="width: 108px" />
         <n-button @click="handleCopy" data-testid="json-copy">复制结果</n-button>
@@ -75,12 +96,12 @@ async function handleCopy() {
           <n-tag size="small" round>Editable</n-tag>
         </div>
 
-        <n-input
-          v-model:value="input"
-          type="textarea"
-          placeholder="粘贴 JSON 文本"
-          :autosize="{ minRows: 14, maxRows: 26 }"
-          class="json-panel__textarea"
+        <CodeEditor
+          v-model="input"
+          :language="selectedLanguage"
+          :enhanced="true"
+          :min-height="340"
+          placeholder="粘贴或输入代码"
         />
       </section>
 
@@ -90,13 +111,13 @@ async function handleCopy() {
           <n-tag size="small" round>只读</n-tag>
         </div>
 
-        <n-input
-          v-model:value="output"
-          type="textarea"
+        <CodeEditor
+          v-model="output"
+          :language="selectedLanguage"
+          :readonly="true"
+          :enhanced="true"
+          :min-height="340"
           placeholder="格式化/压缩结果"
-          :autosize="{ minRows: 14, maxRows: 26 }"
-          readonly
-          class="json-panel__textarea"
         />
       </section>
     </div>
@@ -146,10 +167,7 @@ async function handleCopy() {
   flex-wrap: wrap;
 }
 
-.json-tool__toolbar-main {
-  flex-wrap: wrap;
-}
-
+.json-tool__toolbar-main,
 .json-tool__toolbar-side {
   flex-wrap: wrap;
 }
@@ -176,14 +194,6 @@ async function handleCopy() {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 8px;
-}
-
-.json-panel__textarea {
-  --n-color: rgb(255 255 255 / 78%);
-  --n-color-focus: rgb(255 255 255 / 92%);
-  --n-border-hover: rgb(36 123 255 / 42%);
-  --n-border-focus: rgb(36 123 255 / 52%);
-  --n-box-shadow-focus: 0 0 0 3px rgb(36 123 255 / 14%);
 }
 
 @media (max-width: 980px) {
