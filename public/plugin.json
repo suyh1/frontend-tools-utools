@@ -8,12 +8,17 @@
   "features": [
     {
       "code": "main",
-      "explain": "前端开发工具集（JSON / 颜色）",
+      "explain": "前端开发工具集（JSON / 颜色 / 时间戳 / 编码 / 正则 / URL / JWT）",
       "cmds": [
         "前端工具",
         "前端开发工具",
         "json 格式化",
         "颜色转换",
+        "时间戳转换",
+        "编码解码",
+        "正则测试",
+        "url 解析",
+        "jwt 解析",
         "frontend tools"
       ]
     }

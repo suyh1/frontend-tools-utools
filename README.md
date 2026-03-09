@@ -1,6 +1,6 @@
 # frontend-tools-utools
 
-uTools 前端开发工具集插件（首版）。
+uTools 前端开发工具集插件。
 
 ## 当前能力
 
@@ -14,6 +14,25 @@ uTools 前端开发工具集插件（首版）。
   - 调色板（基础色 + 最近颜色）
   - 渐变生成器（2~5 色标）
   - WCAG 对比度检查（AA / AAA）
+- 时间戳工具
+  - 秒/毫秒时间戳互转
+  - 日期字符串解析
+  - UTC/本地时间与相对时间展示
+- 编码解码工具
+  - URL encode/decode
+  - Base64 encode/decode
+  - HTML Entity encode/decode
+  - Unicode 转义/反转义
+- 正则工具
+  - 正则匹配与分组结果展示
+  - 替换预览
+- URL 工具
+  - URL 解析（protocol/host/path/query/hash）
+  - Query 参数可视化编辑与回组装
+- JWT 工具
+  - Header/Payload 本地解析
+  - `iat/nbf/exp` 时间字段解析
+  - 过期/生效状态提示（不校验签名）
 
 ## 技术栈
 
