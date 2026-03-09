@@ -1,27 +1,81 @@
 # AGENTS.md
 
-## Project Rules
+## 项目硬性规则
 
-- Frontend stack must remain: `Vue3 + Pinia + TypeScript`.
-- Use Composition API (`<script setup lang="ts">`) for all new Vue modules.
-- UI components should use `Naive UI` first; avoid mixing multiple UI libraries.
-- New tools must be registered via `src/tools/registry.ts`.
+- 前端技术栈必须保持为 `Vue3 + Pinia + TypeScript`。
+- 所有新建 Vue 模块必须使用 Composition API：`<script setup lang="ts">`。
+- UI 组件优先使用 `Naive UI`，避免混用多套组件库。
+- 新工具必须在 `src/tools/registry.ts` 中注册。
 
-## Boundaries
+## 代码边界
 
-- Keep `public/preload/services.js` in JavaScript unless explicitly approved.
-- Do not couple tool logic directly into `ToolShell`; put tool-specific code under `src/tools/<tool-id>`.
-- Shared reusable logic goes to `src/composables`.
+- `public/preload/services.js` 保持 JavaScript，除非获得明确批准。
+- 不要把工具业务逻辑直接耦合到 `ToolShell`；工具专属逻辑放在 `src/tools/<tool-id>`。
+- 可复用逻辑统一放到 `src/composables`。
 
-## Quality Gates
+## 质量闸门
 
-- Run `npm run test` before claiming completion.
-- Run `npm run build` before claiming completion.
-- Keep tests for tool utilities in `src/tools/**/utils/*.spec.ts`.
+- 声称完成前必须执行 `npm run test`。
+- 声称完成前必须执行 `npm run build`。
+- 工具工具函数测试放在 `src/tools/**/utils/*.spec.ts`。
 
-## Adding New Tool (Checklist)
+## 新增工具清单
 
-1. Create `src/tools/<tool-id>/` module (`types`, `utils`, `composables`, `Tool.vue`).
-2. Add/extend utility tests first, then implementation.
-3. Register the tool in `src/tools/registry.ts`.
-4. Verify both `npm run test` and `npm run build` pass.
+1. 创建 `src/tools/<tool-id>/` 模块（`types`、`utils`、`composables`、`Tool.vue`）。
+2. 先补充/新增工具函数测试，再写实现。
+3. 在 `src/tools/registry.ts` 注册工具。
+4. 确认 `npm run test` 与 `npm run build` 全通过。
+
+## UI / UX 设计规范（强约束）
+
+### 1. 目标与基线
+
+- 以 uTools 小窗口为第一优先级，默认按“有限高度、有限宽度”设计。
+- 目标是“高信息密度 + 清晰层级 + 低学习成本”，避免空洞和堆砌。
+- 同一页面必须有明确主次：主操作区 > 次操作区 > 辅助信息区。
+
+### 2. 信息密度与布局
+
+- 禁止“一项配置占一整行”的机械堆叠；可并排的字段必须并排。
+- 表单编辑区优先采用网格布局（2 列或 3 列），在小屏再降级为单列。
+- 顶部工具栏、工具页 Header、Drawer Header 必须紧凑，避免挤压主工作区。
+- 长列表必须分组、分区或卡片化，避免同质元素连续堆叠导致无章法。
+
+### 3. 视觉与风格
+
+- 保持统一设计语言：圆角、边框、阴影、透明度、动效节奏必须一致。
+- 视觉风格优先“轻玻璃 + 精准对比”，不要使用厚重纯色大块面板。
+- 字号遵循层级：辅助信息 < 正文 < 标题；禁止普遍偏大导致拥挤。
+- 图标按钮允许替代长文案按钮，但必须保留 `title` 或可感知语义。
+
+### 4. 交互要求
+
+- 所有可点击控件必须有 hover / active / focus 可见反馈。
+- 危险操作（删除、恢复默认）与普通操作在视觉上必须可区分。
+- 拖拽排序必须提供实时落点反馈：悬停位置显示虚线/占位标记，目标项需出现可感知位移动画（例如让位、过渡）。
+- 拖拽区域、落点区域要有明确提示，避免用户猜测。
+- 提示框、浮层、抽屉的位置要贴近触发源或语义锚点，避免漂移感。
+
+### 5. 文案与可读性
+
+- 文案简洁、明确、中文优先，术语前后一致。
+- 输入框应优先使用“标签 + 占位符”组合，不仅依赖占位符表达语义。
+- 辅助说明要短，不写口号式文案，不重复同义提示。
+
+### 6. 响应式与适配
+
+- 必须同时保证桌面端和移动端可用。
+- 在窄宽度下优先保证核心操作可见，其次才是装饰性信息。
+- 当空间不足时，先折叠次要信息，不得破坏关键交互路径。
+
+### 7. 组件复用与可提取性
+
+- 公共编辑能力（如代码编辑器、校验提示、通用配置项）应保持低耦合。
+- 可复用组件必须避免绑定具体工具语义，确保可无损提取到其他项目。
+- 工具页仅组合通用组件与工具逻辑，不复制粘贴通用 UI 实现。
+
+## Git 提交规范
+
+- 提交前缀使用：`feat`、`fix`、`docs`、`refactor`、`test`、`chore` 等。
+- 提交信息中，前缀后面的内容必须使用中文。
+- 示例：`fix: 优化工具管理抽屉布局层级与信息密度`。
