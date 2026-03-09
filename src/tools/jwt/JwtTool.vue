@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { NAlert, NButton, NCard, NInput, NSpace, NTag, NText } from 'naive-ui'
+import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { useJwtTool } from '@/tools/jwt/composables/useJwtTool'
+import { createJwtTokenCodeValidator } from '@/tools/jwt/utils/jwt-editor-validator'
 
 const { token, headerText, payloadText, signature, timeRows, status, error, runParse, reset } = useJwtTool()
+const tokenValidators = [createJwtTokenCodeValidator()]
 </script>
 
 <template>
@@ -16,12 +19,14 @@ const { token, headerText, payloadText, signature, timeRows, status, error, runP
     </div>
 
     <n-space vertical :size="10">
-      <n-input
-        v-model:value="token"
-        type="textarea"
-        :autosize="{ minRows: 4, maxRows: 8 }"
+      <CodeEditor
+        v-model="token"
+        language="markdown"
+        :enhanced="true"
+        :min-height="180"
         placeholder="粘贴 JWT Token"
-        data-testid="jwt-input"
+        :validators="tokenValidators"
+        data-testid="jwt-input-editor"
       />
 
       <n-space :size="8" wrap>
@@ -39,12 +44,26 @@ const { token, headerText, payloadText, signature, timeRows, status, error, runP
 
       <div v-if="headerText" class="jwt-tool__json-block">
         <n-text depth="3">Header</n-text>
-        <pre class="jwt-tool__json">{{ headerText }}</pre>
+        <CodeEditor
+          v-model="headerText"
+          language="json"
+          :readonly="true"
+          :enhanced="true"
+          :min-height="150"
+          data-testid="jwt-header-editor"
+        />
       </div>
 
       <div v-if="payloadText" class="jwt-tool__json-block">
         <n-text depth="3">Payload</n-text>
-        <pre class="jwt-tool__json" data-testid="jwt-payload-preview">{{ payloadText }}</pre>
+        <CodeEditor
+          v-model="payloadText"
+          language="json"
+          :readonly="true"
+          :enhanced="true"
+          :min-height="170"
+          data-testid="jwt-payload-editor"
+        />
       </div>
 
       <div v-if="signature" class="jwt-tool__json-block">
@@ -101,15 +120,6 @@ const { token, headerText, payloadText, signature, timeRows, status, error, runP
   border-radius: 12px;
   border: 1px solid rgb(255 255 255 / 74%);
   background: rgb(255 255 255 / 62%);
-}
-
-.jwt-tool__json {
-  margin: 6px 0 0;
-  padding: 8px;
-  border-radius: 8px;
-  background: rgb(15 23 42 / 6%);
-  white-space: pre-wrap;
-  word-break: break-word;
 }
 
 .jwt-tool__time-row + .jwt-tool__time-row {

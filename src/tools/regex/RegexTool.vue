@@ -1,8 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { NAlert, NButton, NCard, NInput, NSpace, NTag, NText } from 'naive-ui'
+import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { useRegexTool } from '@/tools/regex/composables/useRegexTool'
+import { createRegexInputCodeValidator } from '@/tools/regex/utils/regex-editor-validator'
 
 const { pattern, flags, input, replacement, matches, replaceOutput, error, runMatch, runReplace, reset } = useRegexTool()
+
+const inputValidators = computed(() => [
+  createRegexInputCodeValidator({
+    pattern: pattern.value,
+    flags: flags.value
+  })
+])
 </script>
 
 <template>
@@ -21,12 +31,14 @@ const { pattern, flags, input, replacement, matches, replaceOutput, error, runMa
         <n-input v-model:value="flags" placeholder="flags，如 gmi" style="width: 160px" data-testid="regex-flags" />
       </n-space>
 
-      <n-input
-        v-model:value="input"
-        type="textarea"
-        :autosize="{ minRows: 6, maxRows: 10 }"
+      <CodeEditor
+        v-model="input"
+        language="markdown"
+        :enhanced="true"
+        :min-height="220"
         placeholder="输入待匹配文本"
-        data-testid="regex-input"
+        :validators="inputValidators"
+        data-testid="regex-input-editor"
       />
 
       <n-space :size="8" wrap>
@@ -47,7 +59,15 @@ const { pattern, flags, input, replacement, matches, replaceOutput, error, runMa
       </div>
 
       <n-input v-model:value="replacement" placeholder="替换模板，如 bar$1" />
-      <n-input :value="replaceOutput" type="textarea" :autosize="{ minRows: 4, maxRows: 8 }" readonly />
+      <CodeEditor
+        v-model="replaceOutput"
+        language="markdown"
+        :readonly="true"
+        :enhanced="true"
+        :min-height="160"
+        placeholder="替换结果预览"
+        data-testid="regex-output-editor"
+      />
     </n-space>
   </n-card>
 </template>

@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import { NAlert, NButton, NCard, NInput, NSelect, NSpace, NTag, NText } from 'naive-ui'
+import { computed } from 'vue'
+import { NAlert, NButton, NCard, NSelect, NSpace, NTag, NText } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
+import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { useCodecTool } from '@/tools/codec/composables/useCodecTool'
+import { createCodecInputCodeValidator } from '@/tools/codec/utils/codec-editor-validator'
 
 const { mode, input, output, error, runTransform, reset } = useCodecTool()
+
+const inputValidators = computed(() => [
+  createCodecInputCodeValidator({
+    mode: mode.value
+  })
+])
 
 const modeOptions: SelectOption[] = [
   { label: 'URL Encode', value: 'url-encode' },
@@ -35,23 +44,26 @@ const modeOptions: SelectOption[] = [
         <n-button quaternary @click="reset">清空</n-button>
       </n-space>
 
-      <n-input
-        v-model:value="input"
-        type="textarea"
-        :autosize="{ minRows: 6, maxRows: 10 }"
+      <CodeEditor
+        v-model="input"
+        language="markdown"
+        :enhanced="true"
+        :min-height="220"
         placeholder="输入待转换文本"
-        data-testid="codec-input"
+        :validators="inputValidators"
+        data-testid="codec-input-editor"
       />
 
       <n-alert v-if="error" type="error" title="转换失败" :content="error" />
 
-      <n-input
-        :value="output"
-        type="textarea"
-        :autosize="{ minRows: 6, maxRows: 10 }"
-        readonly
+      <CodeEditor
+        v-model="output"
+        language="markdown"
+        :readonly="true"
+        :enhanced="true"
+        :min-height="220"
         placeholder="转换结果"
-        data-testid="codec-output"
+        data-testid="codec-output-editor"
       />
     </n-space>
   </n-card>
