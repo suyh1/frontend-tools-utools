@@ -1,26 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { NAlert, NButton, NCard, NFlex, NSelect, NSpace, NTag, NText } from 'naive-ui'
+import { NAlert, NButton, NCard, NSelect, NSpace, NTag, NText } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { codeLanguageOptions } from '@/components/code-editor/languages'
 import type { CodeLanguage } from '@/components/code-editor/types'
+import { createJsonCodeValidator } from '@/components/code-editor/validators/json'
 import { useJsonTool } from '@/tools/json/composables/useJsonTool'
 
-const {
-  indent,
-  input,
-  output,
-  error,
-  validated,
-  runFormat,
-  runMinify,
-  runValidate,
-  reset,
-  copyOutput
-} = useJsonTool()
+const { indent, input, output, error, runFormat, runMinify, reset, copyOutput } = useJsonTool()
 
 const selectedLanguage = ref<CodeLanguage>('json')
+const inputValidators = [createJsonCodeValidator()]
 
 const indentOptions: SelectOption[] = [
   { label: '2 空格', value: 2 },
@@ -50,7 +41,7 @@ async function handleCopy() {
     <div class="json-tool__hero">
       <div>
         <n-text class="json-tool__title" strong>JSON 工具</n-text>
-        <n-text depth="3" class="json-tool__subtitle">多语言代码编辑器 + JSON 格式化、压缩、校验</n-text>
+        <n-text depth="3" class="json-tool__subtitle">多语言代码编辑器 + JSON 格式化、压缩（JSON 输入实时校验）</n-text>
       </div>
       <n-tag class="json-tool__status" round>Code Workspace</n-tag>
     </div>
@@ -59,7 +50,6 @@ async function handleCopy() {
       <n-space :size="8" class="json-tool__toolbar-main">
         <n-button type="primary" strong @click="runFormat" data-testid="json-format">格式化</n-button>
         <n-button @click="runMinify" data-testid="json-minify">压缩</n-button>
-        <n-button @click="runValidate" data-testid="json-validate">校验</n-button>
       </n-space>
 
       <n-space :size="8" class="json-tool__toolbar-side" align="center">
@@ -78,12 +68,10 @@ async function handleCopy() {
       </n-space>
     </div>
 
-    <n-alert v-if="validated === true" type="success" title="JSON 校验通过" class="json-tool__alert" />
-
     <n-alert
       v-if="error"
-      type="error"
-      title="JSON 校验失败"
+      type="warning"
+      title="格式化/压缩失败"
       :content="`${error.message}${error.line !== null && error.column !== null ? ` (Line ${error.line}, Col ${error.column})` : ''}`"
       data-testid="json-error"
       class="json-tool__alert"
@@ -102,6 +90,7 @@ async function handleCopy() {
           :enhanced="true"
           :min-height="340"
           placeholder="粘贴或输入代码"
+          :validators="inputValidators"
         />
       </section>
 

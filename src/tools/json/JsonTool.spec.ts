@@ -6,13 +6,13 @@ import JsonTool from './JsonTool.vue'
 describe('JsonTool', () => {
   const CodeEditorStub = {
     name: 'CodeEditor',
-    props: ['modelValue', 'readonly'],
-    emits: ['update:modelValue'],
+    props: ['modelValue', 'readonly', 'validators'],
+    emits: ['update:modelValue', 'validation-change'],
     template:
-      '<textarea data-testid="stub-code-editor" :value="modelValue" :readonly="readonly" @input="$emit(\'update:modelValue\', $event.target.value)" />'
+      '<div><textarea data-testid="stub-code-editor" :value="modelValue" :readonly="readonly" @input="$emit(\'update:modelValue\', $event.target.value)" /><span :data-testid="readonly ? \'output-validator-count\' : \'input-validator-count\'">{{ Array.isArray(validators) ? validators.length : 0 }}</span></div>'
   }
 
-  it('renders format/minify/validate actions', () => {
+  it('renders format/minify actions only', () => {
     const wrapper = mount(JsonTool, {
       global: {
         plugins: [createPinia()],
@@ -24,7 +24,7 @@ describe('JsonTool', () => {
 
     expect(wrapper.text()).toContain('格式化')
     expect(wrapper.text()).toContain('压缩')
-    expect(wrapper.text()).toContain('校验')
+    expect(wrapper.find('[data-testid="json-validate"]').exists()).toBe(false)
   })
 
   it('renders language selector for multi-language editing', () => {
@@ -40,7 +40,7 @@ describe('JsonTool', () => {
     expect(wrapper.text()).toContain('语言')
   })
 
-  it('shows error when invalid json is validated', async () => {
+  it('passes validator to input editor only', async () => {
     const wrapper = mount(JsonTool, {
       global: {
         plugins: [createPinia()],
@@ -50,11 +50,7 @@ describe('JsonTool', () => {
       }
     })
 
-    const input = wrapper.find('[data-testid="stub-code-editor"]')
-    await input.setValue('{"a":}')
-
-    await wrapper.get('[data-testid="json-validate"]').trigger('click')
-
-    expect(wrapper.text()).toContain('JSON 校验失败')
+    expect(wrapper.get('[data-testid="input-validator-count"]').text()).toBe('1')
+    expect(wrapper.get('[data-testid="output-validator-count"]').text()).toBe('0')
   })
 })

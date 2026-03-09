@@ -57,6 +57,8 @@ const language = ref<CodeLanguage>('json')
 | `lineNumbers` | `boolean` | `true` | 是否显示行号 |
 | `wordWrap` | `boolean` | `false` | 是否自动换行 |
 | `placeholder` | `string` | `''` | 空内容占位提示 |
+| `validators` | `CodeEditorValidator[]` | `[]` | 可插拔校验器列表（用于内联诊断） |
+| `validationDebounce` | `number` | `300` | 校验防抖时间（毫秒） |
 
 ## Emits
 
@@ -66,6 +68,7 @@ const language = ref<CodeLanguage>('json')
 | `focus` | `()` | 获取焦点 |
 | `blur` | `()` | 失去焦点 |
 | `selection-change` | `({ from, to, text })` | 选区变化 |
+| `validation-change` | `(report)` | 校验结果变化（诊断列表/是否有效） |
 
 ## 功能说明
 
@@ -152,6 +155,27 @@ if (options.enhanced) {
 import { highlightSelectionMatches } from '@codemirror/search'
 
 sharedExtensions.push(highlightSelectionMatches({ minSelectionLength: 2 }))
+```
+
+### 4) 接入校验器（推荐）
+
+`CodeEditor` 支持通过 `validators` 注入可复用校验器，并在编辑区内联显示诊断信息（错误/警告）。
+
+示例：接入 JSON 校验器
+
+```vue
+<script setup lang="ts">
+import { ref } from 'vue'
+import CodeEditor from '@/components/code-editor/CodeEditor.vue'
+import { createJsonCodeValidator } from '@/components/code-editor/validators/json'
+
+const code = ref('{"a":1}')
+const validators = [createJsonCodeValidator()]
+</script>
+
+<template>
+  <CodeEditor v-model="code" language="json" :validators="validators" />
+</template>
 ```
 
 ### 3) 主题调整

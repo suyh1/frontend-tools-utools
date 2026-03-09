@@ -1,11 +1,18 @@
 <script setup lang="ts">
+import { forceLinting, linter } from '@codemirror/lint'
 import { Compartment, EditorState } from '@codemirror/state'
 import { EditorView, type ViewUpdate } from '@codemirror/view'
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { createEditorFeatureExtensions } from '@/components/code-editor/extensions'
 import { resolveLanguageExtension } from '@/components/code-editor/languages'
 import { codeEditorThemeExtension } from '@/components/code-editor/theme'
-import type { CodeLanguage, CodeSelectionChange } from '@/components/code-editor/types'
+import { runCodeEditorValidators, toCodeMirrorDiagnostics } from '@/components/code-editor/validation'
+import type {
+  CodeEditorValidationReport,
+  CodeEditorValidator,
+  CodeLanguage,
+  CodeSelectionChange
+} from '@/components/code-editor/types'
 
 const props = withDefaults(
   defineProps<{
@@ -18,6 +25,8 @@ const props = withDefaults(
     lineNumbers?: boolean
     wordWrap?: boolean
     placeholder?: string
+    validators?: CodeEditorValidator[]
+    validationDebounce?: number
   }>(),
   {
     readonly: false,
@@ -26,7 +35,9 @@ const props = withDefaults(
     enhanced: true,
     lineNumbers: true,
     wordWrap: false,
-    placeholder: ''
+    placeholder: '',
+    validators: () => [],
+    validationDebounce: 300
   }
 )
 
@@ -35,6 +46,7 @@ const emit = defineEmits<{
   (event: 'focus'): void
   (event: 'blur'): void
   (event: 'selection-change', payload: CodeSelectionChange): void
+  (event: 'validation-change', payload: CodeEditorValidationReport): void
 }>()
 
 const rootRef = ref<HTMLDivElement | null>(null)
@@ -43,6 +55,8 @@ let editorView: EditorView | null = null
 
 const languageCompartment = new Compartment()
 const featureCompartment = new Compartment()
+const validationCompartment = new Compartment()
+let validationRunId = 0
 
 const cssVars = computed(() => {
   const maxHeight = props.maxHeight === 'auto' ? 'none' : `${props.maxHeight}px`
@@ -60,6 +74,48 @@ function createFeatureExtensions() {
     readonly: props.readonly,
     placeholderText: props.placeholder
   })
+}
+
+function emitValidationReport(report: CodeEditorValidationReport) {
+  emit('validation-change', report)
+}
+
+function emitCleanValidationReport() {
+  emitValidationReport({
+    diagnostics: [],
+    hasError: false,
+    hasWarning: false,
+    valid: true
+  })
+}
+
+function createValidationExtensions() {
+  if (!props.validators.length) {
+    return []
+  }
+
+  return [
+    linter(
+      async (view) => {
+        const currentRunId = ++validationRunId
+        const report = await runCodeEditorValidators({
+          validators: props.validators,
+          value: view.state.doc.toString(),
+          language: props.language
+        })
+
+        if (currentRunId !== validationRunId) {
+          return []
+        }
+
+        emitValidationReport(report)
+        return toCodeMirrorDiagnostics(report.diagnostics)
+      },
+      {
+        delay: Math.max(0, props.validationDebounce)
+      }
+    )
+  ]
 }
 
 function handleUpdate(update: ViewUpdate) {
@@ -95,6 +151,7 @@ function createEditorState() {
       codeEditorThemeExtension,
       languageCompartment.of(resolveLanguageExtension(props.language)),
       featureCompartment.of(createFeatureExtensions()),
+      validationCompartment.of(createValidationExtensions()),
       EditorView.updateListener.of(handleUpdate)
     ]
   })
@@ -109,9 +166,16 @@ onMounted(() => {
     state: createEditorState(),
     parent: rootRef.value
   })
+
+  if (props.validators.length) {
+    forceLinting(editorView)
+  } else {
+    emitCleanValidationReport()
+  }
 })
 
 onBeforeUnmount(() => {
+  validationRunId += 1
   editorView?.destroy()
   editorView = null
 })
@@ -148,6 +212,10 @@ watch(
     editorView.dispatch({
       effects: languageCompartment.reconfigure(resolveLanguageExtension(next))
     })
+
+    if (props.validators.length) {
+      forceLinting(editorView)
+    }
   }
 )
 
@@ -161,6 +229,27 @@ watch(
     editorView.dispatch({
       effects: featureCompartment.reconfigure(createFeatureExtensions())
     })
+  }
+)
+
+watch(
+  () => [props.validators, props.validationDebounce] as const,
+  () => {
+    if (!editorView) {
+      return
+    }
+
+    validationRunId += 1
+
+    editorView.dispatch({
+      effects: validationCompartment.reconfigure(createValidationExtensions())
+    })
+
+    if (props.validators.length) {
+      forceLinting(editorView)
+    } else {
+      emitCleanValidationReport()
+    }
   }
 )
 </script>
