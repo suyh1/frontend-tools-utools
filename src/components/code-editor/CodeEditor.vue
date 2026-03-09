@@ -171,6 +171,8 @@ watch(
 
 <style scoped>
 .code-editor {
+  --code-editor-min-height: 240px;
+  --code-editor-max-height: none;
   width: 100%;
   border-radius: 12px;
   transition: box-shadow 200ms ease;
