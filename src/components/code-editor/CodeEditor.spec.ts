@@ -6,4 +6,15 @@ describe('CodeEditor style variables', () => {
     expect(codeEditorSource).toContain('--code-editor-min-height: 240px;')
     expect(codeEditorSource).toContain('--code-editor-max-height: none;')
   })
+
+  it('wires tooltip filter for lint diagnostics', () => {
+    expect(codeEditorSource).toContain('tooltipFilter: () => []')
+    expect(codeEditorSource).toContain('createDiagnosticHoverTooltipExtension()')
+    expect(codeEditorSource).toContain("tooltips({ position: 'absolute' })")
+  })
+
+  it('defines lint tooltip styles for popover display', () => {
+    expect(codeEditorSource).toContain('cm-tooltip-lint-compact')
+    expect(codeEditorSource).toContain('cm-code-tooltip-item')
+  })
 })

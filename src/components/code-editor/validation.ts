@@ -12,6 +12,13 @@ interface RunCodeEditorValidatorsOptions {
   language: string
 }
 
+const severityRankMap: Record<'error' | 'warning' | 'info' | 'hint', number> = {
+  error: 0,
+  warning: 1,
+  info: 2,
+  hint: 3
+}
+
 function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value))
 }
@@ -22,6 +29,31 @@ function normalizeSeverity(severity: CodeEditorDiagnosticSeverity | undefined): 
   }
 
   return 'error'
+}
+
+function severityRank(severity: CodeEditorDiagnosticSeverity | 'hint' | undefined): number {
+  if (severity === 'warning' || severity === 'info' || severity === 'hint') {
+    return severityRankMap[severity]
+  }
+
+  return severityRankMap.error
+}
+
+function compareDiagnostics(a: CodeEditorDiagnostic, b: CodeEditorDiagnostic): number {
+  const severityDiff = severityRank(normalizeSeverity(a.severity)) - severityRank(normalizeSeverity(b.severity))
+  if (severityDiff !== 0) {
+    return severityDiff
+  }
+
+  if (a.from !== b.from) {
+    return a.from - b.from
+  }
+
+  if (a.to !== b.to) {
+    return a.to - b.to
+  }
+
+  return a.message.localeCompare(b.message)
 }
 
 function normalizeDiagnostic(diagnostic: CodeEditorDiagnostic, docLength: number): CodeEditorDiagnostic {
@@ -70,6 +102,25 @@ export function toCodeMirrorDiagnostics(diagnostics: CodeEditorDiagnostic[]): Di
   }))
 }
 
+export function filterTooltipDiagnostics(diagnostics: readonly Diagnostic[]): Diagnostic[] {
+  return [...diagnostics].sort((a, b) => {
+    const severityDiff = severityRank(a.severity) - severityRank(b.severity)
+    if (severityDiff !== 0) {
+      return severityDiff
+    }
+
+    if (a.from !== b.from) {
+      return a.from - b.from
+    }
+
+    if (a.to !== b.to) {
+      return a.to - b.to
+    }
+
+    return a.message.localeCompare(b.message)
+  })
+}
+
 export async function runCodeEditorValidators(
   options: RunCodeEditorValidatorsOptions
 ): Promise<CodeEditorValidationReport> {
@@ -101,12 +152,7 @@ export async function runCodeEditorValidators(
     }
   }
 
-  diagnostics.sort((a, b) => {
-    if (a.from !== b.from) {
-      return a.from - b.from
-    }
-    return a.to - b.to
-  })
+  diagnostics.sort(compareDiagnostics)
 
   const hasError = diagnostics.some((item) => normalizeSeverity(item.severity) === 'error')
   const hasWarning = diagnostics.some((item) => normalizeSeverity(item.severity) === 'warning')

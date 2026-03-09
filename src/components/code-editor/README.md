@@ -178,6 +178,12 @@ const validators = [createJsonCodeValidator()]
 </template>
 ```
 
+校验行为说明：
+
+- 编辑器会对诊断范围进行下划线/标红提示。
+- 鼠标悬浮诊断位置会在光标附近显示紧凑 lint tooltip（popover 风格）。
+- 同一位置存在多条诊断时，tooltip 会展示完整列表（按错误级别排序）。
+
 ### 3) 主题调整
 
 在 [`theme.ts`](./theme.ts) 中统一调整：
