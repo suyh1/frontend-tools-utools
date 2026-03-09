@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NAlert, NButton, NCard, NSelect, NSpace, NTag, NText } from 'naive-ui'
+import { NAlert, NButton, NCard, NSelect, NSpace, NText } from 'naive-ui'
 import type { SelectOption } from 'naive-ui'
 import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { useCodecTool } from '@/tools/codec/composables/useCodecTool'
@@ -29,11 +29,7 @@ const modeOptions: SelectOption[] = [
 <template>
   <n-card :bordered="false" class="codec-tool">
     <div class="codec-tool__hero">
-      <div>
-        <n-text class="codec-tool__title" strong>编码解码工具</n-text>
-        <n-text depth="3" class="codec-tool__subtitle">URL、Base64、HTML Entity、Unicode 一键转换</n-text>
-      </div>
-      <n-tag round>Codec</n-tag>
+      <n-text class="codec-tool__title" strong>编码解码工具</n-text>
     </div>
 
     <n-space vertical :size="10">
@@ -79,14 +75,12 @@ const modeOptions: SelectOption[] = [
 .codec-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .codec-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 

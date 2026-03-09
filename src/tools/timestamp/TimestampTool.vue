@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NAlert, NButton, NCard, NGrid, NGridItem, NInput, NSpace, NTag, NText } from 'naive-ui'
+import { NAlert, NButton, NCard, NGrid, NGridItem, NInput, NSpace, NText } from 'naive-ui'
 import { useTimestampTool } from '@/tools/timestamp/composables/useTimestampTool'
 
 const { input, result, sourceLabel, error, runConvert, setNowSeconds, setNowMilliseconds, reset } = useTimestampTool()
@@ -8,11 +8,7 @@ const { input, result, sourceLabel, error, runConvert, setNowSeconds, setNowMill
 <template>
   <n-card :bordered="false" class="timestamp-tool">
     <div class="timestamp-tool__hero">
-      <div>
-        <n-text class="timestamp-tool__title" strong>时间戳工具</n-text>
-        <n-text depth="3" class="timestamp-tool__subtitle">秒/毫秒与日期时间互转，含 UTC 与相对时间</n-text>
-      </div>
-      <n-tag round>Timestamp</n-tag>
+      <n-text class="timestamp-tool__title" strong>时间戳工具</n-text>
     </div>
 
     <n-space vertical :size="10">
@@ -71,14 +67,12 @@ const { input, result, sourceLabel, error, runConvert, setNowSeconds, setNowMill
 .timestamp-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .timestamp-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 

@@ -48,10 +48,7 @@ async function handleCopyGradient() {
 <template>
   <n-card :bordered="false" class="color-tool">
     <div class="color-tool__hero">
-      <div>
-        <n-text class="color-tool__title" strong>颜色工具</n-text>
-        <n-text depth="3" class="color-tool__subtitle">颜色转换、渐变生成与可访问性检测</n-text>
-      </div>
+      <n-text class="color-tool__title" strong>颜色工具</n-text>
       <n-space :size="8">
         <n-button size="small" @click="handleCopyGradient" data-testid="color-copy-gradient">复制渐变 CSS</n-button>
         <n-button size="small" quaternary @click="resetAll" data-testid="color-reset">重置</n-button>
@@ -195,13 +192,13 @@ async function handleCopyGradient() {
   justify-content: space-between;
   align-items: center;
   gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
 .color-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 

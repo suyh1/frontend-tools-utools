@@ -11,11 +11,7 @@ const tokenValidators = [createJwtTokenCodeValidator()]
 <template>
   <n-card :bordered="false" class="jwt-tool">
     <div class="jwt-tool__hero">
-      <div>
-        <n-text class="jwt-tool__title" strong>JWT 工具</n-text>
-        <n-text depth="3" class="jwt-tool__subtitle">本地解析 Header/Payload（不校验签名）</n-text>
-      </div>
-      <n-tag round>JWT</n-tag>
+      <n-text class="jwt-tool__title" strong>JWT 工具</n-text>
     </div>
 
     <n-space vertical :size="10">
@@ -92,14 +88,12 @@ const tokenValidators = [createJwtTokenCodeValidator()]
 .jwt-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .jwt-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 

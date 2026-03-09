@@ -1,50 +1,83 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
-import {
-  NConfigProvider,
-  NEmpty,
-  NFlex,
-  NLayout,
-  NLayoutContent,
-  NLayoutHeader,
-  NTabPane,
-  NTabs,
-  NTag,
-  NText
-} from 'naive-ui'
+import { computed, onMounted, watch } from 'vue'
+import { NButton, NConfigProvider, NEmpty, NInput, NPopover, NText } from 'naive-ui'
+import MoreToolsPopover from '@/app/components/MoreToolsPopover.vue'
+import ToolManagerDrawer from '@/app/components/ToolManagerDrawer.vue'
 import { resolveInitialToolId } from '@/app/enter-action'
 import { useAppStore } from '@/stores/app'
+import { useToolLayoutStore } from '@/stores/tool-layout'
 import { toolRegistry, toolRegistryMap } from '@/tools/registry'
 
 const appStore = useAppStore()
+const toolLayoutStore = useToolLayoutStore()
 
-const sortedTools = computed(() => [...toolRegistry].sort((a, b) => a.order - b.order))
-
-const activeToolId = computed({
-  get: () => appStore.activeToolId,
-  set: (toolId: string) => appStore.setActiveTool(toolId)
+const activeToolId = computed(() => appStore.activeToolId)
+const activeTool = computed(() => toolRegistryMap.get(activeToolId.value) ?? null)
+const favoriteTools = computed(() => toolLayoutStore.favoriteTools)
+const groupedTools = computed(() => toolLayoutStore.groupedTools)
+const managerVisible = computed({
+  get: () => toolLayoutStore.managerVisible,
+  set: (value: boolean) => toolLayoutStore.setManagerVisible(value)
+})
+const searchQueryModel = computed({
+  get: () => toolLayoutStore.searchQuery,
+  set: (value: string) => toolLayoutStore.setSearchQuery(value)
 })
 
-const activeTool = computed(() => toolRegistryMap.get(activeToolId.value) ?? null)
+const visibleToolIds = computed(() => [...toolLayoutStore.visibleToolIdSet])
 
-const recentToolNames = computed(() =>
-  appStore.recentTools
-    .map((toolId) => toolRegistryMap.get(toolId)?.name)
-    .filter((name): name is string => Boolean(name))
-    .slice(0, 3)
-)
+function resolveActiveToolFallback(preferredId?: string): string | null {
+  if (!visibleToolIds.value.length) {
+    return null
+  }
+
+  if (preferredId && toolLayoutStore.visibleToolIdSet.has(preferredId)) {
+    return preferredId
+  }
+
+  const firstFavorite = favoriteTools.value[0]?.id
+  if (firstFavorite && toolLayoutStore.visibleToolIdSet.has(firstFavorite)) {
+    return firstFavorite
+  }
+
+  return visibleToolIds.value[0] ?? null
+}
 
 function handleToolChange(toolId: string) {
+  if (!toolLayoutStore.visibleToolIdSet.has(toolId)) {
+    return
+  }
   appStore.setActiveTool(toolId)
 }
 
 function onPluginEnter(action: { code: string; type: string; payload: unknown; option: unknown }) {
-  const fallbackToolId = appStore.recentTools[0] ?? 'json'
-  const nextToolId = resolveInitialToolId(action, toolRegistry, fallbackToolId)
-  appStore.setActiveTool(nextToolId)
+  const fallbackToolId = resolveActiveToolFallback(appStore.recentTools[0] ?? 'json')
+  const nextToolId = resolveInitialToolId(action, toolRegistry, fallbackToolId ?? 'json')
+  const safeToolId = resolveActiveToolFallback(nextToolId)
+  if (safeToolId) {
+    appStore.setActiveTool(safeToolId)
+  }
 }
 
+watch(
+  visibleToolIds,
+  () => {
+    const safeToolId = resolveActiveToolFallback(activeToolId.value)
+    if (safeToolId && safeToolId !== activeToolId.value) {
+      appStore.setActiveTool(safeToolId)
+    }
+  },
+  { immediate: true }
+)
+
 onMounted(() => {
+  toolLayoutStore.initialize(toolRegistry)
+
+  const safeToolId = resolveActiveToolFallback(activeToolId.value)
+  if (safeToolId && safeToolId !== activeToolId.value) {
+    appStore.setActiveTool(safeToolId)
+  }
+
   if (window.utools?.onPluginEnter) {
     window.utools.onPluginEnter(onPluginEnter)
   }
@@ -54,255 +87,261 @@ onMounted(() => {
 <template>
   <n-config-provider>
     <div class="tool-shell fade-up-enter-active">
-      <div class="tool-shell__orb tool-shell__orb--left" />
-      <div class="tool-shell__orb tool-shell__orb--right" />
+      <div class="tool-shell__layout">
+        <header class="tool-shell__toolbar" data-testid="tool-toolbar">
+          <div class="tool-shell__brand-mark" aria-hidden="true">FT</div>
 
-      <n-layout class="tool-shell__layout" :native-scrollbar="false">
-        <n-layout-header class="tool-shell__header">
-          <div class="tool-shell__header-card">
-            <n-flex justify="space-between" align="center" :wrap="false" class="tool-shell__header-row">
-              <div class="tool-shell__brand">
-                <n-text class="tool-shell__title" strong>Frontend Tools</n-text>
-                <n-text depth="3" class="tool-shell__subtitle">Glass + Bold Accent Workspace</n-text>
-              </div>
-
-              <n-flex align="center" :size="6" class="tool-shell__recent">
-                <n-text depth="3" class="tool-shell__recent-label">最近使用</n-text>
-                <n-tag v-for="name in recentToolNames" :key="name" size="small" round class="tool-shell__recent-tag">
-                  {{ name }}
-                </n-tag>
-              </n-flex>
-            </n-flex>
-          </div>
-        </n-layout-header>
-
-        <n-layout-content class="tool-shell__content">
-          <div class="tool-shell__tabs-wrap">
-            <n-tabs
-              v-model:value="activeToolId"
-              type="line"
-              animated
-              class="tool-shell__tabs"
-              @update:value="handleToolChange"
+          <div class="tool-shell__favorites" data-testid="favorites-strip">
+            <n-button
+              v-for="tool in favoriteTools"
+              :key="tool.id"
+              size="tiny"
+              tertiary
+              round
+              class="tool-shell__favorite-pill"
+              :class="{ 'tool-shell__favorite-pill--active': tool.id === activeToolId }"
+              @click="handleToolChange(tool.id)"
+              :data-testid="`favorite-tool-${tool.id}`"
+              :title="tool.name"
             >
-              <n-tab-pane v-for="tool in sortedTools" :key="tool.id" :name="tool.id">
-                <template #tab>
-                  <span class="tool-shell__tab-label">
-                    <span class="tool-shell__tab-icon">{{ tool.icon }}</span>
-                    <span>{{ tool.name }}</span>
-                  </span>
-                </template>
-              </n-tab-pane>
-            </n-tabs>
+              <span class="tool-shell__favorite-icon">{{ tool.icon }}</span>
+              <span class="tool-shell__favorite-name">{{ tool.name }}</span>
+            </n-button>
           </div>
 
-          <transition name="panel-fade" mode="out-in">
-            <div class="tool-shell__panel" :key="activeToolId">
-              <component :is="activeTool.component" v-if="activeTool" />
-              <n-empty v-else description="未找到对应工具" />
-            </div>
-          </transition>
-        </n-layout-content>
-      </n-layout>
+          <div class="tool-shell__toolbar-actions">
+            <n-popover trigger="click" placement="bottom-end" :show-arrow="false">
+              <template #trigger>
+                <n-button
+                  size="tiny"
+                  quaternary
+                  circle
+                  class="tool-shell__icon-button"
+                  data-testid="open-search-button"
+                  title="搜索工具"
+                >
+                  <span class="tool-shell__icon-glyph" aria-hidden="true">⌕</span>
+                </n-button>
+              </template>
+
+              <div class="tool-shell__search-popover" data-testid="tool-search-popover">
+                <n-text depth="3" class="tool-shell__search-label">搜索工具</n-text>
+                <n-input
+                  v-model:value="searchQueryModel"
+                  size="small"
+                  clearable
+                  placeholder="名称或关键词"
+                  data-testid="tool-search-input"
+                />
+              </div>
+            </n-popover>
+
+            <MoreToolsPopover :groups="groupedTools" :active-tool-id="activeToolId" @select="handleToolChange">
+              <template #trigger>
+                <n-button
+                  size="tiny"
+                  quaternary
+                  circle
+                  class="tool-shell__icon-button"
+                  data-testid="open-more-tools-button"
+                  title="更多工具"
+                >
+                  <span class="tool-shell__icon-glyph" aria-hidden="true">◫</span>
+                </n-button>
+              </template>
+            </MoreToolsPopover>
+
+            <n-button
+              size="tiny"
+              quaternary
+              circle
+              class="tool-shell__icon-button tool-shell__icon-button--primary"
+              @click="managerVisible = true"
+              data-testid="open-manager-button"
+              title="管理工具"
+            >
+              <span class="tool-shell__icon-glyph" aria-hidden="true">⚙</span>
+            </n-button>
+          </div>
+        </header>
+
+        <transition name="panel-fade" mode="out-in">
+          <div class="tool-shell__panel" :key="activeToolId">
+            <component :is="activeTool.component" v-if="activeTool && toolLayoutStore.visibleToolIdSet.has(activeTool.id)" />
+            <n-empty v-else description="没有可用工具，请在管理工具中调整可见性" />
+          </div>
+        </transition>
+      </div>
+
+      <ToolManagerDrawer v-model:show="managerVisible" />
     </div>
   </n-config-provider>
 </template>
 
 <style scoped>
 .tool-shell {
-  position: relative;
   min-height: 100vh;
-  padding: 16px;
-  overflow: hidden;
+  padding: 6px;
 }
 
 .tool-shell__layout {
-  position: relative;
-  min-height: calc(100vh - 32px);
-  background: rgb(255 255 255 / 34%);
-  border: 1px solid rgb(255 255 255 / 58%);
-  border-radius: 24px;
-  box-shadow: 0 28px 68px rgb(15 23 42 / 11%);
-  backdrop-filter: blur(16px);
+  min-height: calc(100vh - 12px);
+  border-radius: 12px;
+  border: 1px solid rgb(255 255 255 / 60%);
+  background: rgb(255 255 255 / 44%);
+  box-shadow: 0 12px 26px rgb(15 23 42 / 9%);
+  backdrop-filter: blur(12px);
+  padding: 6px;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 6px;
 }
 
-.tool-shell__orb {
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(0);
-  pointer-events: none;
-  opacity: 0.65;
-}
-
-.tool-shell__orb--left {
-  top: -96px;
-  left: -110px;
-  width: 290px;
-  height: 290px;
-  background: radial-gradient(circle at 32% 32%, rgb(36 123 255 / 36%), transparent 72%);
-}
-
-.tool-shell__orb--right {
-  top: -78px;
-  right: -84px;
-  width: 250px;
-  height: 250px;
-  background: radial-gradient(circle at 50% 50%, rgb(0 216 210 / 34%), transparent 72%);
-}
-
-.tool-shell__header {
-  padding: 14px 14px 0;
-  background: transparent;
-}
-
-.tool-shell__header-card {
-  border-radius: 18px;
-  padding: 14px 16px;
-  background: rgb(255 255 255 / 66%);
+.tool-shell__toolbar {
+  border-radius: 10px;
   border: 1px solid rgb(255 255 255 / 72%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 78%);
-}
-
-.tool-shell__header-row {
-  gap: 10px;
-}
-
-.tool-shell__brand {
-  display: flex;
-  flex-direction: column;
-}
-
-.tool-shell__title {
-  font-size: 22px;
-  line-height: 1.08;
-  letter-spacing: 0.01em;
-  color: #0f172a;
-}
-
-.tool-shell__subtitle {
-  font-size: 12px;
-  margin-top: 4px;
-}
-
-.tool-shell__recent {
-  row-gap: 6px;
-}
-
-.tool-shell__recent-label {
-  font-size: 12px;
-}
-
-.tool-shell__recent-tag {
-  border: 1px solid rgb(255 255 255 / 80%);
-  background: rgb(255 255 255 / 62%);
-}
-
-.tool-shell__content {
-  padding: 10px 14px 14px;
-}
-
-.tool-shell__tabs-wrap {
-  border-radius: 16px;
-  border: 1px solid rgb(255 255 255 / 68%);
-  background: rgb(255 255 255 / 56%);
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 82%);
-  padding: 4px 10px 0;
-}
-
-.tool-shell__tab-label {
-  display: inline-flex;
+  background: linear-gradient(130deg, rgb(255 255 255 / 84%), rgb(255 255 255 / 68%));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 90%);
+  padding: 6px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
+  gap: 6px;
 }
 
-.tool-shell__tab-icon {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
+.tool-shell__brand-mark {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 11px;
-  color: #fff;
-  background: linear-gradient(135deg, #247bff, #00d8d2);
-  box-shadow: 0 6px 12px rgb(36 123 255 / 22%);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  color: #0f172a;
+  border: 1px solid rgb(148 163 184 / 34%);
+  background: linear-gradient(135deg, rgb(36 123 255 / 24%), rgb(0 216 210 / 22%));
 }
 
-.tool-shell__panel {
-  margin-top: 12px;
-  padding: 2px;
-  border-radius: 20px;
+.tool-shell__favorites {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  min-width: 0;
+  padding: 1px;
 }
 
-.tool-shell__tabs :deep(.n-tabs-nav) {
-  margin-bottom: 0;
+.tool-shell__favorites::-webkit-scrollbar {
+  height: 0;
 }
 
-.tool-shell__tabs :deep(.n-tabs-nav-scroll-content) {
+.tool-shell__favorite-pill {
+  border: 1px solid rgb(255 255 255 / 78%);
+  background: rgb(255 255 255 / 58%);
+  backdrop-filter: blur(8px);
+  transition: border-color 180ms ease, background-color 180ms ease;
+  flex-shrink: 0;
+}
+
+.tool-shell__favorite-pill :deep(.n-button__content) {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tool-shell__favorite-icon {
+  width: 16px;
+  display: inline-flex;
+  justify-content: center;
+}
+
+.tool-shell__favorite-name {
+  max-width: 0;
+  opacity: 0;
+  margin-left: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  transition: max-width 180ms ease, opacity 180ms ease, margin-left 180ms ease;
+}
+
+.tool-shell__favorite-pill:hover .tool-shell__favorite-name,
+.tool-shell__favorite-pill--active .tool-shell__favorite-name {
+  max-width: 120px;
+  opacity: 1;
+  margin-left: 4px;
+}
+
+.tool-shell__favorite-pill--active {
+  border-color: rgb(36 123 255 / 42%);
+  background: linear-gradient(130deg, rgb(36 123 255 / 20%), rgb(0 216 210 / 18%));
+}
+
+.tool-shell__toolbar-actions {
+  display: inline-flex;
+  align-items: center;
   gap: 4px;
 }
 
-.tool-shell__tabs :deep(.n-tabs-tab) {
-  margin-right: 0;
-  border-radius: 12px;
-  transition: all 220ms ease;
-}
-
-.tool-shell__tabs :deep(.n-tabs-tab.n-tabs-tab--active) {
+.tool-shell__icon-button {
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  border: 1px solid rgb(203 213 225 / 64%);
   background: rgb(255 255 255 / 70%);
-  box-shadow: 0 10px 20px rgb(36 123 255 / 14%);
 }
 
-.tool-shell__tabs :deep(.n-tabs-bar) {
-  background: linear-gradient(120deg, #247bff, #00d8d2);
-  height: 3px;
-  border-radius: 999px;
+.tool-shell__icon-button--primary {
+  border-color: rgb(36 123 255 / 38%);
+  background: linear-gradient(130deg, rgb(36 123 255 / 24%), rgb(0 216 210 / 24%));
+}
+
+.tool-shell__icon-glyph {
+  font-size: 14px;
+  line-height: 1;
+}
+
+.tool-shell__search-popover {
+  width: min(300px, calc(100vw - 40px));
+  display: grid;
+  gap: 6px;
+}
+
+.tool-shell__search-label {
+  font-size: 11px;
+}
+
+.tool-shell__panel {
+  min-height: 0;
+  overflow: auto;
+  border-radius: 12px;
+  padding: 1px;
 }
 
 .panel-fade-enter-active,
 .panel-fade-leave-active {
-  transition: opacity 220ms ease, transform 220ms ease;
+  transition: opacity 180ms ease, transform 180ms ease;
 }
 
 .panel-fade-enter-from,
 .panel-fade-leave-to {
   opacity: 0;
-  transform: translateY(6px);
+  transform: translateY(4px);
 }
 
-@media (max-width: 880px) {
+@media (max-width: 980px) {
   .tool-shell {
-    padding: 10px;
+    padding: 4px;
   }
 
   .tool-shell__layout {
-    min-height: calc(100vh - 20px);
-    border-radius: 18px;
+    min-height: calc(100vh - 8px);
+    padding: 4px;
   }
 
-  .tool-shell__header {
-    padding: 10px 10px 0;
-  }
-
-  .tool-shell__header-card {
-    padding: 12px;
-  }
-
-  .tool-shell__title {
-    font-size: 18px;
-  }
-
-  .tool-shell__subtitle {
-    display: none;
-  }
-
-  .tool-shell__recent {
-    display: none;
-  }
-
-  .tool-shell__content {
-    padding: 10px;
+  .tool-shell__toolbar {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    padding: 5px;
   }
 }
 </style>

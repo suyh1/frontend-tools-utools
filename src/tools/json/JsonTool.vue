@@ -39,11 +39,7 @@ async function handleCopy() {
 <template>
   <n-card :bordered="false" class="json-tool">
     <div class="json-tool__hero">
-      <div>
-        <n-text class="json-tool__title" strong>JSON 工具</n-text>
-        <n-text depth="3" class="json-tool__subtitle">多语言代码编辑器 + JSON 格式化、压缩（JSON 输入实时校验）</n-text>
-      </div>
-      <n-tag class="json-tool__status" round>Code Workspace</n-tag>
+      <n-text class="json-tool__title" strong>JSON 工具</n-text>
     </div>
 
     <div class="json-tool__toolbar">
@@ -125,14 +121,12 @@ async function handleCopy() {
 .json-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .json-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 
@@ -140,11 +134,6 @@ async function handleCopy() {
   display: block;
   margin-top: 3px;
   font-size: 12px;
-}
-
-.json-tool__status {
-  background: linear-gradient(120deg, rgb(36 123 255 / 16%), rgb(0 216 210 / 16%));
-  border: 1px solid rgb(255 255 255 / 78%);
 }
 
 .json-tool__toolbar {
@@ -193,10 +182,6 @@ async function handleCopy() {
   .json-tool__hero {
     align-items: flex-start;
     flex-direction: column;
-  }
-
-  .json-tool__status {
-    align-self: flex-start;
   }
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { NAlert, NButton, NCard, NInput, NSpace, NTag, NText } from 'naive-ui'
+import { NAlert, NButton, NCard, NInput, NSpace, NText } from 'naive-ui'
 import CodeEditor from '@/components/code-editor/CodeEditor.vue'
 import { useRegexTool } from '@/tools/regex/composables/useRegexTool'
 import { createRegexInputCodeValidator } from '@/tools/regex/utils/regex-editor-validator'
@@ -18,11 +18,7 @@ const inputValidators = computed(() => [
 <template>
   <n-card :bordered="false" class="regex-tool">
     <div class="regex-tool__hero">
-      <div>
-        <n-text class="regex-tool__title" strong>正则工具</n-text>
-        <n-text depth="3" class="regex-tool__subtitle">匹配分组分析与替换预览</n-text>
-      </div>
-      <n-tag round>Regex</n-tag>
+      <n-text class="regex-tool__title" strong>正则工具</n-text>
     </div>
 
     <n-space vertical :size="10">
@@ -82,14 +78,12 @@ const inputValidators = computed(() => [
 .regex-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .regex-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 

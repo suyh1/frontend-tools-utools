@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { NAlert, NButton, NCard, NInput, NSpace, NTag, NText } from 'naive-ui'
+import { NAlert, NButton, NCard, NInput, NSpace, NText } from 'naive-ui'
 import { useUrlTool } from '@/tools/url/composables/useUrlTool'
 
 const {
@@ -23,11 +23,7 @@ const {
 <template>
   <n-card :bordered="false" class="url-tool">
     <div class="url-tool__hero">
-      <div>
-        <n-text class="url-tool__title" strong>URL 工具</n-text>
-        <n-text depth="3" class="url-tool__subtitle">URL 解析、Query 编辑与回组装</n-text>
-      </div>
-      <n-tag round>URL</n-tag>
+      <n-text class="url-tool__title" strong>URL 工具</n-text>
     </div>
 
     <n-space vertical :size="10">
@@ -96,14 +92,12 @@ const {
 .url-tool__hero {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .url-tool__title {
   display: block;
-  font-size: 20px;
+  font-size: 16px;
   color: #0f172a;
 }
 
