@@ -6,5 +6,9 @@ export interface ToolDefinition {
   icon: string
   keywords: string[]
   order: number
+  groupId: string
+  groupName: string
+  groupOrder: number
+  defaultFavorite?: boolean
   component: Component
 }

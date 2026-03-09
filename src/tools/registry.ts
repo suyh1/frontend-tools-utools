@@ -16,6 +16,10 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'J',
     keywords: ['json', '格式化', '压缩', '校验'],
     order: 1,
+    groupId: 'data',
+    groupName: '数据解析',
+    groupOrder: 1,
+    defaultFavorite: true,
     component: JsonTool
   },
   {
@@ -24,6 +28,9 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'C',
     keywords: ['颜色', '色值', '渐变', '对比度', 'hex', 'rgb', 'hsl'],
     order: 2,
+    groupId: 'utility',
+    groupName: '实用工具',
+    groupOrder: 3,
     component: ColorTool
   },
   {
@@ -32,6 +39,9 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'T',
     keywords: ['时间戳', '日期', 'utc', '毫秒', '秒'],
     order: 3,
+    groupId: 'utility',
+    groupName: '实用工具',
+    groupOrder: 3,
     component: TimestampTool
   },
   {
@@ -40,6 +50,10 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'E',
     keywords: ['编码', '解码', 'url', 'base64', 'html entity', 'unicode'],
     order: 4,
+    groupId: 'text',
+    groupName: '文本处理',
+    groupOrder: 2,
+    defaultFavorite: true,
     component: CodecTool
   },
   {
@@ -48,6 +62,10 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'R',
     keywords: ['正则', 'regex', '匹配', '替换', '分组'],
     order: 5,
+    groupId: 'text',
+    groupName: '文本处理',
+    groupOrder: 2,
+    defaultFavorite: true,
     component: RegexTool
   },
   {
@@ -56,6 +74,10 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'U',
     keywords: ['url', 'query', '参数', '链接', '解析'],
     order: 6,
+    groupId: 'data',
+    groupName: '数据解析',
+    groupOrder: 1,
+    defaultFavorite: true,
     component: UrlTool
   },
   {
@@ -64,6 +86,9 @@ export const toolRegistry: ToolDefinition[] = [
     icon: 'J',
     keywords: ['jwt', 'token', 'payload', 'header', 'exp'],
     order: 7,
+    groupId: 'data',
+    groupName: '数据解析',
+    groupOrder: 1,
     component: JwtTool
   }
 ]
