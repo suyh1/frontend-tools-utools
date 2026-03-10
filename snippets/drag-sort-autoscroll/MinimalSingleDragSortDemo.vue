@@ -2,11 +2,13 @@
 import { ref } from 'vue'
 import { useSingleDragSortAutoScroll } from './useSingleDragSortAutoScroll'
 
+// 演示用条目结构。
 interface DemoItem {
   id: string
   name: string
 }
 
+// 示例数据：扁平列表。
 const items = ref<DemoItem[]>([
   { id: 'json', name: 'JSON' },
   { id: 'yaml', name: 'YAML' },
@@ -18,9 +20,11 @@ const items = ref<DemoItem[]>([
   { id: 'timestamp', name: 'Timestamp' }
 ])
 
+// 使用 composable 获取拖拽排序所需的状态与事件处理函数。
 const { renderedItems, isDraggingItem, isDropAnchor, isDropAtEnd, onItemDragStart, onItemDragOver, onEndZoneDragOver, onDrop, onDragEnd } =
   useSingleDragSortAutoScroll(items, {
-  getId: (item) => item.id
+    // getId 用于告诉 composable 如何拿到每条数据的唯一 id。
+    getId: (item) => item.id
   })
 </script>
 
@@ -28,6 +32,7 @@ const { renderedItems, isDraggingItem, isDropAnchor, isDropAtEnd, onItemDragStar
   <section class="demo">
     <h3>单列表拖拽排序最小示例</h3>
 
+    <!-- 列表区域：支持拖拽排序与过渡动画 -->
     <transition-group name="item" tag="ul" class="item-list">
       <li
         v-for="(item, index) in renderedItems"
@@ -47,6 +52,7 @@ const { renderedItems, isDraggingItem, isDropAnchor, isDropAtEnd, onItemDragStar
       </li>
     </transition-group>
 
+    <!-- 列表末尾落点区域 -->
     <div
       class="drop-zone"
       :class="{ 'drop-zone--active': isDropAtEnd() }"
@@ -91,6 +97,7 @@ const { renderedItems, isDraggingItem, isDropAnchor, isDropAtEnd, onItemDragStar
   transform: scale(0.992);
 }
 
+/* 条目落点提示：上方虚线 + 轻阴影 */
 .item-row--drop-anchor {
   margin-top: 10px;
   box-shadow: 0 8px 18px rgb(59 130 246 / 16%);
@@ -114,6 +121,7 @@ const { renderedItems, isDraggingItem, isDropAnchor, isDropAtEnd, onItemDragStar
   text-align: center;
 }
 
+/* 末尾落点激活态 */
 .drop-zone--active {
   border-color: #3b82f6;
   background: rgb(219 234 254 / 45%);
