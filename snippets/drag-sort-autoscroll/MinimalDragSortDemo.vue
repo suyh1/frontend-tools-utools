@@ -2,10 +2,12 @@
 import { ref } from 'vue'
 import { useDragSortAutoScroll, type DragSortGroup } from './useDragSortAutoScroll'
 
+// 演示用分组结构：在 DragSortGroup 基础上补充分组名称。
 interface DemoGroup extends DragSortGroup {
   name: string
 }
 
+// 示例数据：分组 + 条目 id 列表。
 const groups = ref<DemoGroup[]>([
   {
     id: 'formatter',
@@ -24,6 +26,7 @@ const groups = ref<DemoGroup[]>([
   }
 ])
 
+// 条目 id -> 展示文本映射，方便演示更友好的显示。
 const labels: Record<string, string> = {
   json: 'JSON',
   yaml: 'YAML',
@@ -36,6 +39,7 @@ const labels: Record<string, string> = {
   color: 'Color'
 }
 
+// 使用 composable 获取拖拽排序所需的状态与事件处理函数。
 const {
   renderedGroups,
   dragGroupId,
@@ -56,6 +60,7 @@ const {
   isItemDropAtEnd
 } = useDragSortAutoScroll(groups)
 
+// 找不到映射时就回退显示 id 本身。
 function resolveLabel(id: string): string {
   return labels[id] ?? id
 }
@@ -65,6 +70,7 @@ function resolveLabel(id: string): string {
   <section class="demo">
     <h3>拖拽排序最小示例</h3>
 
+    <!-- 分组列表：可拖拽排序，容器负责过渡动画 -->
     <transition-group name="group" tag="div" class="group-list">
       <article
         v-for="(group, groupIndex) in renderedGroups"
@@ -85,6 +91,7 @@ function resolveLabel(id: string): string {
           <span>{{ group.itemIds.length }} 项</span>
         </header>
 
+        <!-- 条目列表：组内/跨组拖拽的目标区域 -->
         <transition-group name="item" tag="ul" class="item-list">
           <li
             v-for="(itemId, itemIndex) in group.itemIds"
@@ -104,6 +111,7 @@ function resolveLabel(id: string): string {
           </li>
         </transition-group>
 
+        <!-- 组内末尾落点区域（拖到这里放在最后） -->
         <div
           class="drop-zone"
           :class="{ 'drop-zone--active': isItemDropAtEnd(group.id) }"
@@ -115,6 +123,7 @@ function resolveLabel(id: string): string {
       </article>
     </transition-group>
 
+    <!-- 分组末尾落点区域 -->
     <div
       class="group-end-zone"
       :class="{ 'group-end-zone--active': isGroupDropAtEnd() }"
@@ -157,6 +166,7 @@ function resolveLabel(id: string): string {
   transform: scale(0.992);
 }
 
+/* 分组落点提示：上方虚线 */
 .group-card--drop-anchor {
   margin-top: 14px;
 }
@@ -204,6 +214,7 @@ function resolveLabel(id: string): string {
   transform: scale(0.992);
 }
 
+/* 条目落点提示：上方虚线 + 轻阴影 */
 .item-row--drop-anchor {
   margin-top: 10px;
   box-shadow: 0 8px 18px rgb(59 130 246 / 16%);
@@ -228,6 +239,7 @@ function resolveLabel(id: string): string {
   text-align: center;
 }
 
+/* 末尾落点激活态 */
 .drop-zone--active,
 .group-end-zone--active {
   border-color: #3b82f6;
